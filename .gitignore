@@ -1,0 +1,31 @@
+# Arquivos binários
+*.exe
+*.dll
+*.so
+*.dylib
+*.out
+
+# Diretórios de build
+bin/
+build/
+
+# Dependências geradas
+vendor/
+temp/
+
+# Arquivos temporários
+*.log
+*.tmp
+*.swp
+*.swo
+*.bak
+*.sqlite
+*.db
+
+# Configurações locais
+.env
+.idea/
+.DS_Store
+
+# Módulos Go
+go.sum

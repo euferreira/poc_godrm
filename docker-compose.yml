@@ -1,0 +1,16 @@
+services:
+  app:
+    build: .
+    container_name: go-app
+    ports:
+      - "8080:8080"
+    extra_hosts:
+      - 'host.docker.internal:172.17.0.1'
+    depends_on:
+      - ffmpeg
+
+  ffmpeg:
+    image: jrottenberg/ffmpeg:latest
+    container_name: ffmpeg-container
+    volumes:
+      - .:/app
