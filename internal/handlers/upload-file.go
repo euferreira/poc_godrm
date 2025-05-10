@@ -2,15 +2,16 @@ package handlers
 
 import (
 	"errors"
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
-	"io"
-	"mime/multipart"
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
 	"projeto_drm/poc/internal/database"
 	"projeto_drm/poc/internal/models"
+	"time"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func UploadHandler(c *gin.Context) {
@@ -19,14 +20,6 @@ func UploadHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Arquivo não foi enviado"})
 		return
 	}
-
-	defer func(file multipart.File) {
-		err := file.Close()
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Não foi possível fechar o arquivo"})
-			return
-		}
-	}(file)
 
 	tempDir := "temp"
 	if err := os.MkdirAll(tempDir, os.ModePerm); err != nil {
@@ -48,31 +41,14 @@ func UploadHandler(c *gin.Context) {
 		return
 	}
 
-	dstPath := filepath.Join("temp", header.Filename)
-	out, err := os.Create(dstPath)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Não foi possível criar o arquivo"})
-		return
-	}
-	defer func(out *os.File) {
-		err := out.Close()
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Não foi possível fechar o arquivo"})
-			return
-		}
-	}(out)
-
-	_, err = io.Copy(out, file)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao salvar o arquivo"})
-		return
-	}
-
+	uniqueName := fmt.Sprintf("%d_%s", time.Now().UnixNano(), header.Filename)
+	dstPath := filepath.Join(tempDir, uniqueName)
 	asset := models.Asset{
 		Name:      header.Filename,
 		Type:      header.Header.Get("Content-Type"),
 		Size:      header.Size,
 		Path:      dstPath,
+		Status:    models.StatusPending,
 		Encrypted: false,
 	}
 
@@ -88,4 +64,6 @@ func UploadHandler(c *gin.Context) {
 		"size":     header.Size,
 		"type":     header.Header.Get("Content-Type"),
 	})
+
+	go processFile(asset, file, dstPath)
 }

@@ -1,10 +1,11 @@
 package handlers
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"projeto_drm/poc/internal/database"
 	"projeto_drm/poc/internal/models"
+
+	"github.com/gin-gonic/gin"
 )
 
 type ListAssetsResponse struct {
