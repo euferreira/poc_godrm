@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -64,6 +65,23 @@ func UploadHandler(c *gin.Context) {
 		return
 	}
 
+	// Create a temporary file to store the uploaded content
+	tempFile, err := os.CreateTemp("", "upload-*")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao criar arquivo temporário"})
+		return
+	}
+	tempFilePath := tempFile.Name()
+	defer tempFile.Close()
+
+	// Copy the uploaded file to the temporary file
+	_, err = io.Copy(tempFile, file)
+	if err != nil {
+		os.Remove(tempFilePath) // Clean up the temporary file
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao salvar arquivo temporário"})
+		return
+	}
+
 	asset := models.Asset{
 		Name:      header.Filename,
 		Type:      header.Header.Get("Content-Type"),
@@ -74,17 +92,20 @@ func UploadHandler(c *gin.Context) {
 	}
 
 	if err := database.DB.Create(&asset).Error; err != nil {
+		os.Remove(tempFilePath) // Clean up the temporary file
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao salvar metadados no banco"})
 		return
 	}
 
 	job := queue.AssetJob{
-		ID:   asset.ID,
-		Path: dstPath,
-		Type: asset.Type,
+		ID:           asset.ID,
+		Path:         dstPath,
+		Type:         asset.Type,
+		TempFilePath: tempFilePath,
 	}
 
 	if err := queue.EnqueueAssetJob(job); err != nil {
+		os.Remove(tempFilePath) // Clean up the temporary file
 		database.DB.Model(&asset).Updates(models.Asset{Status: models.StatusFailed})
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao enfileirar processamento"})
 		return

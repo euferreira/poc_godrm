@@ -8,9 +8,10 @@ import (
 const queueName = "asset-queue"
 
 type AssetJob struct {
-	ID   uint
-	Path string
-	Type string
+	ID           uint
+	Path         string
+	Type         string
+	TempFilePath string
 }
 
 func EnqueueAssetJob(job AssetJob) error {

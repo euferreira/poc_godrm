@@ -20,7 +20,7 @@ func InitDatabase() {
 
 	DB = db
 
-	err = DB.AutoMigrate(&models.Asset{})
+	err = DB.AutoMigrate(&models.Asset{}, &models.ProcessedAsset{})
 	if err != nil {
 		log.Fatalf("Error migrating database: %v", err)
 	}
