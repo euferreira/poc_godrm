@@ -2,6 +2,9 @@ services:
   app:
     build: .
     container_name: go-app
+    mem_limit: 2048M
+    mem_reservation: 1024M
+    cpus: 1.5
     ports:
       - "8080:8080"
     extra_hosts:
@@ -13,12 +16,18 @@ services:
   ffmpeg:
     image: jrottenberg/ffmpeg:latest
     container_name: ffmpeg-container
+    mem_limit: 1024M
+    mem_reservation: 512M
+    cpus: 2.0
     volumes:
       - .:/app
 
   redis:
     image: redis:7
     container_name: redis
+    mem_limit: 512M
+    mem_reservation: 256M
+    cpus: 0.5
     ports:
       - "6379:6379"
     volumes:

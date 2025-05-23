@@ -85,3 +85,8 @@ A tabela `assets` possui os seguintes campos:
 ## Observações
 
 - Arquivos enviados são armazenados no diretório `temp/`.
+- Os containers Docker têm limites de recursos configurados:
+  - **Memória total**: Máximo de 4GB distribuídos entre os serviços
+  - **App**: 2GB de memória e 1.5 CPUs
+  - **FFmpeg**: 1.5GB de memória e 2.0 CPUs
+  - **Redis**: 500MB de memória e 0.5 CPUs

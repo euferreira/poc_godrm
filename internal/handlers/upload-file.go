@@ -18,7 +18,7 @@ import (
 )
 
 func UploadHandler(c *gin.Context) {
-	const maxUploadSize = 500 << 20 // 500 MB
+	const maxUploadSize = 1 << 30 // 1GB
 	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxUploadSize)
 
 	file, header, err := c.Request.FormFile("file")

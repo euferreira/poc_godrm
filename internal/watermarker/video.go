@@ -20,12 +20,10 @@ func AddVideoWatermark(inputPath, outputPath, userID string) error {
 	cpuCount := getCPUCount()
 
 	cmd := exec.Command("ffmpeg",
-		// Input
-		"-i", inputPath,
-
 		// Hardware acceleration (se disponível)
 		"-hwaccel", "auto",
-
+		// Input
+		"-i", inputPath,
 		// Video filters - watermark otimizado
 		"-vf", fmt.Sprintf(
 			"drawtext=text='Licensed to: %s':x=w-tw-20:y=h-th-20:fontsize=32:fontcolor=white@0.8:borderw=2:bordercolor=black@0.8:box=1:boxcolor=black@0.3:boxborderw=5",
@@ -79,11 +77,9 @@ func AddVideoWatermarkLarge(inputPath, outputPath, userID string) error {
 	cpuCount := getCPUCount()
 
 	cmd := exec.Command("ffmpeg",
-		"-i", inputPath,
-
 		// Hardware acceleration
 		"-hwaccel", "auto",
-
+		"-i", inputPath,
 		// Watermark simplificado para arquivos grandes
 		"-vf", fmt.Sprintf(
 			"drawtext=text='%s':x=w-tw-10:y=10:fontsize=24:fontcolor=white@0.7:borderw=1:bordercolor=black",
