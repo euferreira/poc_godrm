@@ -8,9 +8,21 @@ services:
       - 'host.docker.internal:172.17.0.1'
     depends_on:
       - ffmpeg
+      - redis
 
   ffmpeg:
     image: jrottenberg/ffmpeg:latest
     container_name: ffmpeg-container
     volumes:
       - .:/app
+
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+volumes:
+  redis-data:

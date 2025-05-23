@@ -15,6 +15,7 @@ func AddVideoWatermark(inputPath, outputPath, userID string) error {
 		),
 		"-codec:v", "libx264", "-crf", "23", "-preset", "fast",
 		"-codec:a", "copy",
+		"-threads", "1",
 		outputPath,
 	)
 

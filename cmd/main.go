@@ -1,13 +1,15 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"projeto_drm/poc/internal/auth"
 	"projeto_drm/poc/internal/database"
 	"projeto_drm/poc/internal/handlers"
+	"projeto_drm/poc/internal/queue"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -18,6 +20,8 @@ func main() {
 	r.Use(auth.Middleware())
 
 	handlers.RegisterRoutes(r)
+	queue.InitRedisClient()
+	queue.StartWorker()
 
 	s := &http.Server{
 		Addr:           ":8080",
