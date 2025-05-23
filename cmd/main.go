@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/joho/godotenv"
 	"log"
 	"net/http"
 	"os"
@@ -18,18 +19,22 @@ import (
 )
 
 func main() {
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Println("Arquivo .env não encontrado ou não pôde ser carregado")
+	}
+
 	database.InitDatabase()
 
 	r := gin.Default()
 	r.POST("/auth/login", auth.LoginHandler)
 	r.Use(auth.Middleware())
+	handlers.RegisterRoutes(r)
 
 	redisURL := os.Getenv("REDIS_URL")
 	if redisURL == "" {
 		redisURL = "redis:6379"
 	}
-
-	handlers.RegisterRoutes(r)
 	queue.InitRedisClient()
 	handlers.InitializeQueue(redisURL)
 	redisQueue := queue.NewRedisQueue(redisURL)

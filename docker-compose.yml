@@ -12,6 +12,8 @@ services:
     depends_on:
       - ffmpeg
       - redis
+    volumes:
+      - ./data:/app/data
 
   ffmpeg:
     image: jrottenberg/ffmpeg:latest

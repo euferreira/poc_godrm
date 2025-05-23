@@ -27,6 +27,7 @@ temp/
 .idea/
 .DS_Store
 docs/
+data/
 
 # Módulos Go
 go.sum

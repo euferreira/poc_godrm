@@ -19,6 +19,7 @@ func ListAssets(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to retrieve assets",
 		})
+		return
 	}
 
 	c.JSON(http.StatusOK, ListAssetsResponse{

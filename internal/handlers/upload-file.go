@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -23,36 +25,68 @@ func UploadHandler(c *gin.Context) {
 
 	file, header, err := c.Request.FormFile("file")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Arquivo não foi enviado ou excede o limite de 500MB"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Arquivo não foi enviado ou excede o limite de 1GB"})
 		return
 	}
-
 	defer file.Close()
 
 	allowedTypes(header.Header.Get("Content-Type"), c)
-
 	if strings.Contains(header.Filename, "..") {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Nome de arquivo inválido"})
-		return
-	}
-
-	tempDir := "temp"
-	if err := os.MkdirAll(tempDir, 0755); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao criar diretório temporário"})
 		return
 	}
 
 	var existingAsset models.Asset
 	err = database.DB.Where("name = ?", header.Filename).First(&existingAsset).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		// Trata erros inesperados do banco
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao verificar existência do arquivo"})
 		return
 	}
-
 	if err == nil {
-		// Registro já existe
 		c.JSON(http.StatusConflict, gin.H{"error": "Arquivo já existe"})
+		return
+	}
+
+	storageType := os.Getenv("STORAGE_TYPE")
+	log.Println("Tipo de armazenamento:", storageType)
+	if storageType == "" {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Tipo de armazenamento não definido"})
+		return
+	}
+
+	switch storageType {
+	case "local":
+		uploadLocalFile(c, file, header)
+		break
+	case "s3":
+		uploadS3File(c, file, header)
+		break
+
+	default:
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Tipo de armazenamento não suportado"})
+		return
+	}
+}
+
+func allowedTypes(contentType string, c *gin.Context) {
+	allowedTypes := map[string]bool{
+		"application/pdf": true,
+		"video/mp4":       true,
+		"video/quicktime": true,
+	}
+
+	if !allowedTypes[contentType] {
+		fmt.Println("Tipo de arquivo não suportado:", contentType)
+		c.JSON(http.StatusUnsupportedMediaType, gin.H{"error": "Tipo de arquivo não suportado"})
+		c.Abort()
+		return
+	}
+}
+
+func uploadLocalFile(c *gin.Context, file io.Reader, header *multipart.FileHeader) {
+	tempDir := "temp"
+	if err := os.MkdirAll(tempDir, 0755); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erro ao criar diretório temporário"})
 		return
 	}
 
@@ -123,17 +157,9 @@ func UploadHandler(c *gin.Context) {
 	})
 }
 
-func allowedTypes(contentType string, c *gin.Context) {
-	allowedTypes := map[string]bool{
-		"application/pdf": true,
-		"video/mp4":       true,
-		"video/quicktime": true,
-	}
-
-	if !allowedTypes[contentType] {
-		fmt.Println("Tipo de arquivo não suportado:", contentType)
-		c.JSON(http.StatusUnsupportedMediaType, gin.H{"error": "Tipo de arquivo não suportado"})
-		c.Abort()
-		return
-	}
+func uploadS3File(c *gin.Context, file io.Reader, header *multipart.FileHeader) {
+	// Implementar upload para S3
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Upload para S3 não implementado",
+	})
 }

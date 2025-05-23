@@ -13,6 +13,7 @@ FROM alpine:latest
 RUN apk add --no-cache ffmpeg freetype freetype-dev fontconfig ttf-dejavu
 WORKDIR /app
 COPY --from=builder /go/bin/app /app/app
+COPY .env /app/.env
 RUN chmod +x /app/app
 RUN ls -lh /app
 CMD ["/app/app"]
